@@ -22,13 +22,15 @@ class Token(val type: TokenType,
 }
 
 enum class TokenType {
-    NUMBER, OPERATOR;
+    NUMBER, OPERATOR, VARIABLE;
 
     companion object {
         fun from(value: String): TokenType {
             return when (value) {
                 "+", "-", "*", "/", "(", ")" -> OPERATOR
-                else -> NUMBER
+                else -> {
+                    if (value.contains("[a-z]".toRegex())) VARIABLE else NUMBER
+                }
             }
         }
     }

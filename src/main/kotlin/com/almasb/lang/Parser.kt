@@ -4,7 +4,7 @@ import com.almasb.lang.TokenType.*
 import java.lang.RuntimeException
 import java.util.*
 
-class Parser {
+class Parser(private val env: Env = Env({  })) {
 
     fun parse(tokens: List<Token>): Exp {
         val expStack: Deque<Exp> = ArrayDeque()
@@ -55,6 +55,10 @@ class Parser {
                             operatorStack.addLast(token.value)
                         }
                     }
+                }
+
+                VARIABLE -> {
+                    expStack.addLast(Val(env.memory[token.value]?.toString() ?: throw RuntimeException("")))
                 }
             }
         }

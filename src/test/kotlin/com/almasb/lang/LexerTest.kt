@@ -33,4 +33,19 @@ class LexerTest {
                 Token(TokenType.NUMBER, "-13")
         ))
     }
+
+    @Test
+    fun `Test all`() {
+        val line = "-5 + x + -13 * y"
+
+        assertThat(Lexer().tokenize(line), contains(
+                Token(TokenType.NUMBER, "-5"),
+                Token(TokenType.OPERATOR, "+"),
+                Token(TokenType.VARIABLE, "x"),
+                Token(TokenType.OPERATOR, "+"),
+                Token(TokenType.NUMBER, "-13"),
+                Token(TokenType.OPERATOR, "*"),
+                Token(TokenType.VARIABLE, "y")
+        ))
+    }
 }
