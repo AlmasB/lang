@@ -27,7 +27,7 @@ enum class TokenType {
     companion object {
         fun from(value: String): TokenType {
             return when (value) {
-                "+", "-", "*", "/" -> OPERATOR
+                "+", "-", "*", "/", "(", ")" -> OPERATOR
                 else -> NUMBER
             }
         }

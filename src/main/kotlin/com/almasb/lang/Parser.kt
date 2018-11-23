@@ -15,16 +15,36 @@ class Parser {
             when (token.type) {
                 NUMBER -> {
                     expStack.addLast(Val(token.value))
-
                 }
 
                 OPERATOR -> {
 
-                    if (operatorStack.isEmpty()) {
+                    if (token.value == "(") {
                         operatorStack.addLast(token.value)
+                    } else if (token.value == ")") {
+
+                        while (operatorStack.isNotEmpty() && operatorStack.peekLast() != "(") {
+
+                            val right = expStack.removeLast()
+                            val left = expStack.removeLast()
+
+                            val op = operatorStack.removeLast()
+
+                            when (op) {
+                                "+" -> expStack.addLast(Add(left, right))
+                                "-" -> expStack.addLast(Sub(left, right))
+                                "*" -> expStack.addLast(Mul(left, right))
+                                "/" -> expStack.addLast(Div(left, right))
+                            }
+                        }
+
+                        // '('
+                        operatorStack.removeLast()
+
                     } else {
 
-                        while (operatorStack.isNotEmpty() && operatorStack.peekLast().precedes(token.value)) {
+                        while (operatorStack.isNotEmpty()
+                                && operatorStack.peekLast().operatorPrecedence() >= token.value.operatorPrecedence()) {
 
                             val right = expStack.removeLast()
                             val left = expStack.removeLast()
@@ -41,12 +61,9 @@ class Parser {
 
                         operatorStack.addLast(token.value)
                     }
+
                 }
             }
-
-//            println("Token is $token and State:")
-//            println(expStack)
-//            println(operatorStack)
         }
 
         while (operatorStack.isNotEmpty()) {
@@ -69,12 +86,10 @@ class Parser {
     }
 }
 
-private fun String.precedes(other: String): Boolean {
-    if (this == "*" || this == "/")
-        return true
-
-    if (other == "*" || other == "/")
-        return false
-
-    return true
+private fun String.operatorPrecedence(): Int {
+    return when (this) {
+        "*", "/" -> 100
+        "+", "-" -> 1
+        else -> 0
+    }
 }
