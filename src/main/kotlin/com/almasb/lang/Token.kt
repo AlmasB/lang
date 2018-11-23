@@ -9,7 +9,7 @@ class Token(val type: TokenType,
         if (other !is Token)
             return false
 
-        return other.type == type && value == value
+        return other.type == type && other.value == value
     }
 
     override fun hashCode(): Int {

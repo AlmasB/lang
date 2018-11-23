@@ -61,4 +61,22 @@ class ExpTest {
 
         assertThat(exp.eval().toInt(), `is`(3 * ( 5 + 2 ) * 7 + ( 15 - 15 ) / 5 / 3 + ( 6 / 2 ) - 2 + 1 * 4 * 6))
     }
+
+    @Test
+    fun `Test complex + - mul and div with paren recursive`() {
+        val line = "3 * ( ( 5 + 2 ) ) * 7 + ( 15 - 15 ) / 5 / 3 + ( 6 / 2 ) - 2 + 1 * 4 * 6"
+
+        val exp: Exp = Parser().parse(Lexer().tokenize(line))
+
+        assertThat(exp.eval().toInt(), `is`(3 * ( ( 5 + 2 ) ) * 7 + ( 15 - 15 ) / 5 / 3 + ( 6 / 2 ) - 2 + 1 * 4 * 6))
+    }
+
+    @Test
+    fun `Test complex + - mul and div with paren inside`() {
+        val line = "3 * ( 155 - ( 5 + 2 ) ) * 7 + ( 15 - 15 ) / 5 / 3 + ( 6 / 2 ) - 2 + 1 * 4 * 6"
+
+        val exp: Exp = Parser().parse(Lexer().tokenize(line))
+
+        assertThat(exp.eval().toInt(), `is`(3 * ( 155 - ( 5 + 2 ) ) * 7 + ( 15 - 15 ) / 5 / 3 + ( 6 / 2 ) - 2 + 1 * 4 * 6))
+    }
 }

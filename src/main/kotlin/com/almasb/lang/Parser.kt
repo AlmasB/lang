@@ -1,16 +1,18 @@
 package com.almasb.lang
 
 import com.almasb.lang.TokenType.*
+import java.lang.RuntimeException
 import java.util.*
 
 class Parser {
 
-    private val expStack: Deque<Exp> = ArrayDeque()
-    private val operatorStack: Deque<String> = ArrayDeque()
-
     fun parse(tokens: List<Token>): Exp {
+        val expStack: Deque<Exp> = ArrayDeque()
+        val operatorStack: Deque<String> = ArrayDeque()
 
-        for (token in tokens) {
+        val wrappedTokens = listOf(Token(OPERATOR, "(")) + tokens + Token(OPERATOR, ")")
+
+        for (token in wrappedTokens) {
 
             when (token.type) {
                 NUMBER -> {
@@ -19,70 +21,55 @@ class Parser {
 
                 OPERATOR -> {
 
-                    if (token.value == "(") {
-                        operatorStack.addLast(token.value)
-                    } else if (token.value == ")") {
+                    when (token.value) {
+                        "(" -> operatorStack.addLast(token.value)
 
-                        while (operatorStack.isNotEmpty() && operatorStack.peekLast() != "(") {
+                        ")" -> {
+                            while (operatorStack.isNotEmpty()
+                                    && operatorStack.peekLast() != "(") {
 
-                            val right = expStack.removeLast()
-                            val left = expStack.removeLast()
+                                val right = expStack.removeLast()
+                                val left = expStack.removeLast()
 
-                            val op = operatorStack.removeLast()
+                                val op = operatorStack.removeLast()
 
-                            when (op) {
-                                "+" -> expStack.addLast(Add(left, right))
-                                "-" -> expStack.addLast(Sub(left, right))
-                                "*" -> expStack.addLast(Mul(left, right))
-                                "/" -> expStack.addLast(Div(left, right))
+                                expStack.addLast(buildExp(op, left, right))
                             }
+
+                            // '('
+                            operatorStack.removeLast()
                         }
 
-                        // '('
-                        operatorStack.removeLast()
+                        else -> {
+                            while (operatorStack.isNotEmpty()
+                                    && operatorStack.peekLast().operatorPrecedence() >= token.value.operatorPrecedence()) {
 
-                    } else {
+                                val right = expStack.removeLast()
+                                val left = expStack.removeLast()
 
-                        while (operatorStack.isNotEmpty()
-                                && operatorStack.peekLast().operatorPrecedence() >= token.value.operatorPrecedence()) {
+                                val op = operatorStack.removeLast()
 
-                            val right = expStack.removeLast()
-                            val left = expStack.removeLast()
-
-                            val op = operatorStack.removeLast()
-
-                            when (op) {
-                                "+" -> expStack.addLast(Add(left, right))
-                                "-" -> expStack.addLast(Sub(left, right))
-                                "*" -> expStack.addLast(Mul(left, right))
-                                "/" -> expStack.addLast(Div(left, right))
+                                expStack.addLast(buildExp(op, left, right))
                             }
-                        }
 
-                        operatorStack.addLast(token.value)
+                            operatorStack.addLast(token.value)
+                        }
                     }
-
                 }
             }
         }
 
-        while (operatorStack.isNotEmpty()) {
-
-            //val right = Val(token.value)
-            val right = expStack.removeLast()
-            val left = expStack.removeLast()
-
-            val op = operatorStack.removeLast()
-
-            when (op) {
-                "+" -> expStack.addLast(Add(left, right))
-                "-" -> expStack.addLast(Sub(left, right))
-                "*" -> expStack.addLast(Mul(left, right))
-                "/" -> expStack.addLast(Div(left, right))
-            }
-        }
-
         return expStack.removeLast()
+    }
+
+    private fun buildExp(op: String, left: Exp, right: Exp): Exp {
+        return when (op) {
+            "+" -> Add(left, right)
+            "-" -> Sub(left, right)
+            "*" -> Mul(left, right)
+            "/" -> Div(left, right)
+            else -> throw RuntimeException("Unknown op: $op")
+        }
     }
 }
 
